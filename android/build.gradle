@@ -1,35 +1,65 @@
+/**
+ * This file is where you define build configuration and other build related items.
+ * You should declare all global Gradle build configuration here.
+ */
 buildscript {
     ext {
-        buildToolsVersion = "33.0.0"
-        minSdkVersion = 21
-        compileSdkVersion = 33
-        targetSdkVersion = 33
-        ndkVersion = "23.1.7779620"
-        kotlinVersion = "1.9.0"
+        // The Kotlin version for the entire project. Update to a version compatible with AGP 8.3.x (e.g., 1.9.22).
+        // Ensure this matches the version your other Kotlin dependencies might require.
+        kotlin_version = "1.9.22"
+
+        // The Android SDK versions to target. For AGP 8.x, it is highly recommended to target API 34 (Android 14) or higher.
+        // Please ensure these values are consistent with your project's requirements and your `android/app/build.gradle`.
+        compileSdkVersion = 34
+        targetSdkVersion = 34
+        minSdkVersion = 21 // Keep at 21 or increase if your project supports newer minimum API levels
+
+        // --- KEEP YOUR OTHER EXT VARIABLES HERE ---
+        // Example: If you have variables like `ndkVersion`, `reactNativeAndroidDir`, `supportLibVersion`, etc.,
+        // ensure they are present and correctly configured here or in their respective locations.
+
+        // Example other variables (remove if not present or replace with your actual values):
+        // supportLibVersion = "28.0.0"
+        // reactNativeAndroidDir = file("../../node_modules/react-native/android")
     }
     repositories {
         google()
         mavenCentral()
     }
     dependencies {
-        classpath("com.android.tools.build:gradle:8.1.1")
-        classpath("com.facebook.react:react-native-gradle-plugin")
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
+        // Update Android Gradle Plugin (AGP) to a version compatible with Gradle 8.3 (e.g., 8.3.0).
+        // The previous error 'Unable to get absolute path from ... not key in sourceSetPathMap' is often resolved by this update.
+        classpath("com.android.tools.build:gradle:8.3.0")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version")
+        // --- KEEP YOUR OTHER CLASSPATH DEPENDENCIES HERE ---
+        // Example: If you have other plugins like `com.google.gms:google-services`, keep them.
+
+        // Example other dependencies (remove if not present or replace with your actual values):
+        // classpath("com.google.gms:google-services:4.4.1")
     }
 }
 
+// All projects block, typically used to define repositories for all modules (app, libraries).
+// Ensure all necessary repositories for your project's dependencies are listed here.
 allprojects {
     repositories {
+        mavenLocal()
+        maven { url "https://www.jitpack.io" } // Often needed for various React Native libraries
         google()
         mavenCentral()
-        maven { url 'https://www.jitpack.io' }
     }
-    // Fix for Kotlin incompatible version error in CI (Gradle 8.3 vs Kotlin 1.7 metadata)
-    tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
-        kotlinOptions {
-            freeCompilerArgs += [
-                "-Xskip-metadata-version-check"
-            ]
-        }
-    }
+}
+
+// This block configures the build directory for subprojects and defines a 'clean' task.
+// Adjust according to your existing build.gradle content, but this structure is common.
+rootProject.buildDir = file("../build")
+subprojects {
+    project.buildDir = file("${rootProject.buildDir}/${project.name}")
+}
+subprojects {
+    project.evaluationDependsOn(':app')
+}
+
+task clean(type: Delete) {
+    delete rootProject.buildDir
 }
